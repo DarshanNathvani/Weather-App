@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Darshan Weather App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #222;
+        }
+
+        .card {
+            width: 90%;
+            max-width: 450px;
+            background: linear-gradient(135deg, #00feba, #5b548a);
+            color: #fff;
+            margin: 100px auto 0;
+            border-radius: 20px;
+            padding: 40px 35px;
+            text-align: center;
+        }
+
+        .search {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search input {
+            border: 0;
+            outline: 0;
+            background: #ebfffc;
+            color: #555;
+            padding: 10px 25px;
+            border-radius: 50px;
+            height: 60px; 
+            margin-right: 16px;
+            font-size: 18px;
+        }
+
+        .search button {
+            border: 0;
+            outline: 0;
+            background: #ebfffc;
+            border-radius: 50%;
+            width: 60px;  
+            height: 60px; 
+            cursor: pointer;
+        }
+
+        .search button img {
+            width: 40px;
+        }
+
+        .search button.loading img {
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .weather-icon {
+            width: 170px;  
+            margin-top: 30px;
+        }
+
+        .weather h1 {
+            font-size: 80px;
+            font-weight: 500;
+        }
+
+        .weather h2 {
+            font-size: 45px;
+            font-weight: 400;
+            margin-top: -10px;
+        }
+
+        .details {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            margin-top: 50px;
+        }
+
+        .col {
+            display: flex;
+            align-items: center;
+            text-align: left;
+        }
+
+        .col img {
+            width: 40px;
+            margin-right: 10px;
+        }
+
+        .humidity, .wind {
+            font-size: 20px;
+            margin-top: -6px;
+        }
+
+        .weather {
+            display: none;
+        }
+
+        .error {
+            text-align: left;
+            margin-left: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .quote {
+            font-size: 20px;
+            color: #ffd700; /* Gold color */
+            margin-top: 20px;
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Darshan Weather App</h1>
+        <div class="search">
+            <input type="text" placeholder="Enter city name" spellcheck="false">
+            <button><img src="images/searchicon.png"></button>
+        </div>
+        <div class="weather">
+            <img src="images/rain.png" class="weather-icon">
+            <h1 class="temp">22°C</h1>
+            <h2 class="city">Surat</h2>
+            <div class="details">
+                <div class="col">
+                    <img src="images/humidity.png">
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="images/wind.png">
+                    <div>
+                        <p class="wind">15 Km/h</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="quote" style="display: none;"></div>
+        </div>
+        <div class="error">City not found!</div>
+    </div>
+
+    <script>
+        const apikey = "5505503d18623d5d3cca990533bdeb1b";
+        const apiurl = "https://api.openweathermap.org/data/2.5/weather?unit=metric&q=";
+
+        const searchbox = document.querySelector(".search input");
+        const searchBtn = document.querySelector(".search button");
+        const weathericon = document.querySelector(".weather-icon");
+        const quoteElement = document.querySelector(".quote");
+
+        async function checkweather(city) {
+            searchBtn.classList.add('loading');  // Add loading class
+
+            const response = await fetch(apiurl + city + '&appid=' + apikey);
+
+            if (response.status == 404) {
+                document.querySelector(".error").style.display = "block";
+                document.querySelector(".weather").style.display = "none";
+                quoteElement.style.display = "none";
+            } else {
+                var data = await response.json();
+                console.log(data);
+
+                document.querySelector(".city").innerHTML = data.name;
+                document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°C";
+                document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+                document.querySelector(".wind").innerHTML = data.wind.speed + " Km/h";
+
+                if (data.weather[0].main == "Clouds") {
+                    weathericon.src = "images/cloud.png";
+                } else if (data.weather[0].main == "Clear") {
+                    weathericon.src = "images/clear.png";
+                } else if (data.weather[0].main == "Rain") {
+                    weathericon.src = "images/rain.png";
+                } else if (data.weather[0].main == "Drizzle") {
+                    weathericon.src = "images/drizzle.png";
+                } else if (data.weather[0].main == "Mist") {
+                    weathericon.src = "images/mist.png";
+                }
+
+                document.querySelector(".weather").style.display = "block";
+                document.querySelector(".error").style.display = "none";
+
+                // Set the quote based on weather
+                if (data.weather[0].main === "Clear" || data.weather[0].main === "Clouds") {
+                    quoteElement.innerHTML = "It's a great day for a trip!";
+                } else if (data.weather[0].main === "Rain") {
+                    quoteElement.innerHTML = "Don't forget your umbrella!";
+                } else {
+                    quoteElement.innerHTML = "Enjoy the weather!";
+                }
+
+                quoteElement.style.display = "block"; // Show the quote
+            }
+
+            searchBtn.classList.remove('loading');  // Remove loading class
+        }
+
+        searchBtn.addEventListener("click", () => {
+            checkweather(searchbox.value);
+        });
+    </script>
+</body>
+</html>
